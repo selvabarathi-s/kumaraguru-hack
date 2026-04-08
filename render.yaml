@@ -1,0 +1,47 @@
+services:
+  # Node.js Backend API
+  - type: web
+    name: e-waste-backend
+    env: node
+    plan: free
+    buildCommand: "npm install"
+    startCommand: "node app.js"
+    rootDir: "backend"
+    envVars:
+      - key: FLASK_URL
+        fromService:
+          type: web
+          name: e-waste-ml
+          envVarKey: RENDER_EXTERNAL_URL
+      - key: DB_HOST
+        value: "YOUR_MYSQL_HOST_HERE"
+      - key: DB_USER
+        value: "YOUR_MYSQL_USER_HERE"
+      - key: DB_PASSWORD
+        value: "YOUR_MYSQL_PASSWORD_HERE"
+      - key: DB_NAME
+        value: "YOUR_MYSQL_DATABASE_HERE"
+
+  # Python Machine Learning Service
+  - type: web
+    name: e-waste-ml
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn -w 2 -b 0.0.0.0:$PORT app:app"
+    rootDir: "ml-service"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.10.12"
+
+  # Python Computer Vision Service
+  - type: web
+    name: e-waste-cv
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn -w 2 -b 0.0.0.0:$PORT app:app"
+    rootDir: "cv-service"
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.10.12"
