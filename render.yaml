@@ -13,14 +13,11 @@ services:
           type: web
           name: e-waste-ml
           envVarKey: RENDER_EXTERNAL_URL
-      - key: DB_HOST
-        value: "YOUR_MYSQL_HOST_HERE"
-      - key: DB_USER
-        value: "YOUR_MYSQL_USER_HERE"
-      - key: DB_PASSWORD
-        value: "YOUR_MYSQL_PASSWORD_HERE"
-      - key: DB_NAME
-        value: "YOUR_MYSQL_DATABASE_HERE"
+      - key: CV_URL
+        fromService:
+          type: web
+          name: e-waste-cv
+          envVarKey: RENDER_EXTERNAL_URL
 
   # Python Machine Learning Service
   - type: web

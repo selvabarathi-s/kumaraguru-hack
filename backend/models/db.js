@@ -10,7 +10,22 @@ let db;
  */
 async function query(sql, params = []) {
   if (!db) await initDB();
-  return db.all(sql, params);
+  const statement = sql.trim().toLowerCase();
+  if (
+    statement.startsWith('select') ||
+    statement.startsWith('pragma') ||
+    statement.startsWith('with')
+  ) {
+    return db.all(sql, params);
+  }
+
+  const result = await db.run(sql, params);
+  return {
+    insertId: result.lastID,
+    affectedRows: result.changes,
+    changes: result.changes,
+    lastID: result.lastID,
+  };
 }
 
 /**
