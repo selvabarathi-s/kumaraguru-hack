@@ -7,6 +7,7 @@ const CustomerDashboard = () => {
   const [condition, setCondition] = useState('good');
   const [suggestion, setSuggestion] = useState(null);
   const [devices, setDevices] = useState([]);
+  const [pickupMessage, setPickupMessage] = useState('');
   const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
   
   // Environmental constants for quantification
@@ -19,6 +20,22 @@ const CustomerDashboard = () => {
 
   // Mock currently logged-in user from localStorage 
   const currentUser = JSON.parse(localStorage.getItem('ewaste_user'))?.username || 'customer';
+  const nearbyCenters = [
+    {
+      name: 'Green Recycling Hub',
+      distance: '2.5 km away',
+      details: 'Opens till 6 PM',
+      latitude: 11.0183,
+      longitude: 76.9682,
+    },
+    {
+      name: 'Tech Fixers Service Center',
+      distance: '3.8 km away',
+      details: 'Repair & Refurbish',
+      latitude: 11.077,
+      longitude: 77.0163,
+    },
+  ];
 
   useEffect(() => {
     fetchDevices();
@@ -81,6 +98,21 @@ const CustomerDashboard = () => {
     } catch (err) {
       console.error('Failed to delete device', err);
     }
+  };
+
+  const openMapDirections = (latitude, longitude, label) => {
+    const encodedLabel = encodeURIComponent(label);
+    window.open(`https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}%20(${encodedLabel})`, '_blank', 'noopener,noreferrer');
+  };
+
+  const handlePickupRequest = () => {
+    const pickupCount = devices.length;
+    if (pickupCount === 0) {
+      setPickupMessage('Add at least one device before requesting a pickup.');
+      return;
+    }
+
+    setPickupMessage(`Pickup request created for ${pickupCount} device${pickupCount > 1 ? 's' : ''}. A collection agent will contact ${currentUser} soon.`);
   };
 
   // Calculate environmental impact dynamically
@@ -239,24 +271,29 @@ const CustomerDashboard = () => {
           <div className="card shadow-sm border-0 mb-4">
             <div className="card-header border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
               <h5 className="fw-bold"><MapPin className="me-2" />Nearest Hubs & Centers</h5>
-              <button className="btn btn-outline-secondary btn-sm">View Map</button>
+              <button
+                className="btn btn-outline-secondary btn-sm"
+                onClick={() => openMapDirections(nearbyCenters[0].latitude, nearbyCenters[0].longitude, nearbyCenters[0].name)}
+              >
+                View Map
+              </button>
             </div>
             <div className="card-body">
               <ul className="list-group list-group-flush">
-                <li className="list-group-item px-0 d-flex justify-content-between align-items-center">
-                  <div>
-                    <h6 className="mb-0">Green Recycling Hub</h6>
-                    <small className="text-muted">2.5 km away • Opens till 6 PM</small>
-                  </div>
-                  <button className="btn btn-sm btn-outline-primary">Directions</button>
-                </li>
-                <li className="list-group-item px-0 d-flex justify-content-between align-items-center">
-                  <div>
-                    <h6 className="mb-0">Tech Fixers Service Center</h6>
-                    <small className="text-muted">3.8 km away • Repair & Refurbish</small>
-                  </div>
-                  <button className="btn btn-sm btn-outline-primary">Directions</button>
-                </li>
+                {nearbyCenters.map((center) => (
+                  <li key={center.name} className="list-group-item px-0 d-flex justify-content-between align-items-center">
+                    <div>
+                      <h6 className="mb-0">{center.name}</h6>
+                      <small className="text-muted">{center.distance} • {center.details}</small>
+                    </div>
+                    <button
+                      className="btn btn-sm btn-outline-primary"
+                      onClick={() => openMapDirections(center.latitude, center.longitude, center.name)}
+                    >
+                      Directions
+                    </button>
+                  </li>
+                ))}
               </ul>
             </div>
           </div>
@@ -267,7 +304,14 @@ const CustomerDashboard = () => {
             </div>
             <div className="card-body">
               <p className="text-muted small mb-3">Schedule a door-step pickup. Our agent will collect your e-waste.</p>
-              <button className="btn btn-dark w-100" onClick={() => alert('Pickup scheduled successfully! An agent will contact you soon.')}><Truck size={18} className="me-2" /> Schedule Pickup Now</button>
+              <button className="btn btn-dark w-100" onClick={handlePickupRequest}>
+                <Truck size={18} className="me-2" /> Schedule Pickup Now
+              </button>
+              {pickupMessage && (
+                <div className={`alert mt-3 mb-0 ${devices.length > 0 ? 'alert-success' : 'alert-warning'}`}>
+                  {pickupMessage}
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -127,14 +127,14 @@ const HubDashboard = () => {
         <div className="card-header border-bottom-0 pb-0 pt-3">
           <ul className="nav nav-tabs border-bottom-0">
             <li className="nav-item cursor-pointer" style={{ cursor: 'pointer' }}>
-              <a className={`nav-link fw-bold ${activeTab === 'entry' ? 'active border-bottom border-primary border-3' : 'text-muted border-0'}`} onClick={() => setActiveTab('entry')}>
+              <button type="button" className={`nav-link fw-bold bg-transparent ${activeTab === 'entry' ? 'active border-bottom border-primary border-3' : 'text-muted border-0'}`} onClick={() => setActiveTab('entry')}>
                 <Inbox size={18} className="me-2"/> Log Incoming Collection
-              </a>
+              </button>
             </li>
             <li className="nav-item cursor-pointer" style={{ cursor: 'pointer' }}>
-              <a className={`nav-link fw-bold ${activeTab === 'inventory' ? 'active border-bottom border-primary border-3' : 'text-muted border-0'}`} onClick={() => setActiveTab('inventory')}>
+              <button type="button" className={`nav-link fw-bold bg-transparent ${activeTab === 'inventory' ? 'active border-bottom border-primary border-3' : 'text-muted border-0'}`} onClick={() => setActiveTab('inventory')}>
                 <Database size={18} className="me-2"/> Inventory & Routing
-              </a>
+              </button>
             </li>
           </ul>
         </div>

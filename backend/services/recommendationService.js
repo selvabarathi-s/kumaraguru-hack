@@ -3,6 +3,8 @@ const logger = require('../utils/logger');
 
 const RECYCLING_CENTER_MIN_DISTANCE_KM = 5;
 const BIN_PLACEMENT_RADIUS_KM = 2;
+const MAX_BIN_RECOMMENDATIONS = 60;
+const MAX_BINS_PER_REGION = 4;
 
 function haversineDistance(lat1, lng1, lat2, lng2) {
   const R = 6371;
@@ -91,25 +93,39 @@ async function getBinPlacements() {
   }
 
   const placements = [];
+  const placementKeys = new Set();
 
   for (const spot of hotspots) {
     const lat = parseFloat(spot.latitude);
     const lng = parseFloat(spot.longitude);
     const disposal = parseFloat(spot.total_disposal);
 
-    const binCount = Math.max(1, Math.ceil(disposal / 20));
+    const binCount = Math.min(MAX_BINS_PER_REGION, Math.max(1, Math.ceil(disposal / 20)));
     const offsets = generateBinOffsets(binCount, BIN_PLACEMENT_RADIUS_KM);
 
-    for (const offset of offsets) {
+    for (let index = 0; index < offsets.length; index++) {
+      if (placements.length >= MAX_BIN_RECOMMENDATIONS) break;
+
+      const offset = offsets[index];
+      const latitude = lat + offset.latOffset;
+      const longitude = lng + offset.lngOffset;
+      const key = `${spot.region}:${latitude.toFixed(4)}:${longitude.toFixed(4)}`;
+
+      if (placementKeys.has(key)) continue;
+      placementKeys.add(key);
+
       placements.push({
-        latitude: lat + offset.latOffset,
-        longitude: lng + offset.lngOffset,
+        id: `${spot.region}-${index + 1}`,
+        latitude,
+        longitude,
         bin_type: spot.severity === 'High' ? 'Large (500L)' : spot.severity === 'Medium' ? 'Medium (250L)' : 'Small (120L)',
         region: spot.region,
         priority: spot.severity,
         estimated_fill_rate_days: spot.severity === 'High' ? 7 : spot.severity === 'Medium' ? 14 : 21,
       });
     }
+
+    if (placements.length >= MAX_BIN_RECOMMENDATIONS) break;
   }
 
   logger.info({ placements: placements.length }, 'Bin placements calculated');
@@ -126,28 +142,17 @@ function generateBinOffsets(count, radiusKm) {
     return offsets;
   }
 
-  const layers = Math.ceil(Math.sqrt(count));
-  let placed = 0;
-
-  for (let i = 0; i < layers && placed < count; i++) {
-    const angle = (2 * Math.PI * i) / Math.min(layers, count - placed);
-    const r = (radiusKm * (i + 1)) / layers;
+  for (let i = 0; i < count; i++) {
+    const angle = (2 * Math.PI * i) / count;
+    const ring = count <= 3 ? 1 : i % 2 === 0 ? 1 : 0.55;
+    const r = radiusKm * ring;
     offsets.push({
       latOffset: (r * Math.cos(angle)) * latPerKm,
       lngOffset: (r * Math.sin(angle)) * lngPerKm,
     });
-    placed++;
   }
 
-  while (offsets.length < count) {
-    const idx = offsets.length % offsets.length;
-    offsets.push({
-      latOffset: offsets[idx].latOffset + 0.001,
-      lngOffset: offsets[idx].lngOffset + 0.001,
-    });
-  }
-
-  return offsets.slice(0, count);
+  return offsets;
 }
 
 async function getRankedRecommendations(limit = 20) {

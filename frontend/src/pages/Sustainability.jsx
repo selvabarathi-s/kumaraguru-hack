@@ -46,7 +46,12 @@ const Sustainability = () => {
         fetch(`${API_BASE}/recommendations`),
       ]);
       const scoresData = await scoresRes.json();
-      if (Array.isArray(scoresData)) setScores(scoresData);
+      if (Array.isArray(scoresData)) {
+        setScores(scoresData);
+        if (!selectedRegion && scoresData.length > 0) {
+          setSelectedRegion(scoresData[0].region);
+        }
+      }
 
       const recData = await alertsRes.json();
       if (recData.ai_insights) {
@@ -115,6 +120,18 @@ const Sustainability = () => {
   const greenCount = regions.filter((r) => r.risk_level === 'Green').length;
   const yellowCount = regions.filter((r) => r.risk_level === 'Yellow').length;
   const redCount = regions.filter((r) => r.risk_level === 'Red').length;
+  const avgScore = regions.length > 0
+    ? (regions.reduce((sum, r) => sum + r.score, 0) / regions.length).toFixed(1)
+    : '0.0';
+  const priorityRegions = [...regions]
+    .sort((a, b) => {
+      const riskOrder = { Red: 0, Yellow: 1, Green: 2 };
+      if (riskOrder[a.risk_level] !== riskOrder[b.risk_level]) {
+        return riskOrder[a.risk_level] - riskOrder[b.risk_level];
+      }
+      return a.score - b.score;
+    })
+    .slice(0, 3);
 
   const selectedData = selectedRegion ? scores.filter((s) => s.region === selectedRegion) : [];
 
@@ -191,6 +208,56 @@ const Sustainability = () => {
                   <div className="kpi-value" style={{ color: '#dc2626' }}>{redCount}</div>
                   <div className="kpi-label">Red Zones</div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="row g-3 mb-4">
+            <div className="col-md-6">
+              <div className="card p-3 fade-in">
+                <h4 className="mb-3" style={{ fontSize: '1.05rem', fontWeight: 700 }}>
+                  <Recycle size={18} style={{ marginRight: '6px', color: '#10b981' }} />
+                  Sustainability Overview
+                </h4>
+                <div className="row g-3">
+                  <div className="col-6">
+                    <div className="text-center p-3 rounded border">
+                      <div className="kpi-value" style={{ fontSize: '1.4rem' }}>{regions.length}</div>
+                      <div className="kpi-label">Regions Rated</div>
+                    </div>
+                  </div>
+                  <div className="col-6">
+                    <div className="text-center p-3 rounded border">
+                      <div className="kpi-value" style={{ fontSize: '1.4rem' }}>{avgScore}</div>
+                      <div className="kpi-label">Avg Score</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="col-md-6">
+              <div className="card p-3 fade-in">
+                <h4 className="mb-3" style={{ fontSize: '1.05rem', fontWeight: 700 }}>
+                  <AlertTriangle size={18} style={{ marginRight: '6px', color: '#f59e0b' }} />
+                  Priority Regions
+                </h4>
+                {priorityRegions.length > 0 ? (
+                  <div className="d-flex flex-column gap-2">
+                    {priorityRegions.map((region) => (
+                      <button
+                        key={region.region}
+                        className="btn btn-light text-start d-flex align-items-center justify-content-between"
+                        onClick={() => setSelectedRegion(region.region)}
+                      >
+                        <span>{region.region}</span>
+                        <span className="text-muted small">{region.risk_level} • {region.score}/100</span>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-muted mb-0">No regional score summary available yet.</p>
+                )}
               </div>
             </div>
           </div>
@@ -304,7 +371,7 @@ const Sustainability = () => {
                     <div className="empty-state">
                       <Shield className="empty-state-icon" style={{ color: '#6366f1' }} />
                       <h5 style={{ color: '#1e293b', fontWeight: 600 }}>Select a Region</h5>
-                      <p className="text-muted">Click on a region to view detailed sustainability metrics and trends.</p>
+                      <p className="text-muted">Choose a region from the left to inspect yearly score, recycling performance, and risk level.</p>
                     </div>
                   </div>
                 )}

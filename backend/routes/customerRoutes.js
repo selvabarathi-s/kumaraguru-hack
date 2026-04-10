@@ -32,9 +32,21 @@ router.put('/customer/devices/:id', async (req, res, next) => {
   try {
     const { id } = req.params;
     const { device_type, age_years, condition_status, ai_suggestion } = req.body;
+    const existing = await db.query('SELECT * FROM customer_devices WHERE id = ?', [id]);
+    if (existing.length === 0) {
+      return res.status(404).json({ message: 'Device not found' });
+    }
+
+    const current = existing[0];
     await db.query(
       'UPDATE customer_devices SET device_type = ?, age_years = ?, condition_status = ?, ai_suggestion = ? WHERE id = ?',
-      [device_type, age_years, condition_status, ai_suggestion, id]
+      [
+        device_type ?? current.device_type,
+        age_years ?? current.age_years,
+        condition_status ?? current.condition_status,
+        ai_suggestion ?? current.ai_suggestion,
+        id,
+      ]
     );
     res.json({ message: 'Device updated successfully' });
   } catch (error) {

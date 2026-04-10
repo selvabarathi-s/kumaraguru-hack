@@ -42,6 +42,12 @@ function mlConnectionError() {
   );
 }
 
+function clampPrediction(value) {
+  const numeric = parseFloat(value);
+  if (Number.isNaN(numeric)) return 0;
+  return Math.max(0, numeric);
+}
+
 function validateTabularInput(body) {
   const {
     region,
@@ -132,7 +138,7 @@ async function runTabularForecast(body) {
     throw new AppError('No prediction returned from ML service', 500, 'ML_EMPTY');
   }
 
-  const predicted_tonnes = predictions[0];
+  const predicted_tonnes = clampPrediction(predictions[0]);
   const metrics = data.metrics || null;
   const modelVersion = data.model_version || 'legacy-linear';
 
@@ -236,7 +242,7 @@ async function runTimeseriesForecast(body) {
       const lastYear = history[history.length - 1].year;
       const series = legacyPreds.map((val, i) => ({
         year: lastYear + i + 1,
-        predicted_tonnes: parseFloat(val) || 0,
+        predicted_tonnes: clampPrediction(val),
       }));
       if (series.length === 0) {
         throw new AppError('No prediction returned from ML service', 500, 'ML_EMPTY');
@@ -287,7 +293,10 @@ async function runTimeseriesForecast(body) {
   }
 
   const data = flaskResponse.data;
-  const series = data.series || [];
+  const series = (data.series || []).map((point) => ({
+    ...point,
+    predicted_tonnes: clampPrediction(point.predicted_tonnes),
+  }));
   const metrics = data.metrics || null;
   const modelVersion = data.model_version || 'arima';
 
@@ -363,7 +372,12 @@ async function listPredictions(filters = {}) {
 
   return {
     data: rows,
-    pagination: { page, limit, total: countRows[0]?.total || rows.length, hasMore: rows.length === limit },
+    pagination: {
+      page,
+      limit,
+      total: Number(countRows[0]?.total || 0),
+      hasMore: offset + rows.length < Number(countRows[0]?.total || 0),
+    },
   };
 }
 

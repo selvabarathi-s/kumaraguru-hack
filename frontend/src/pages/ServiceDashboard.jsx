@@ -133,14 +133,14 @@ const ServiceDashboard = () => {
         <div className="card-header border-bottom-0 pb-0 pt-3">
           <ul className="nav nav-tabs border-bottom-0">
             <li className="nav-item cursor-pointer" style={{ cursor: 'pointer' }}>
-              <a className={`nav-link fw-bold ${activeTab === 'repair' ? 'active border-bottom border-success border-3 text-success' : 'text-muted border-0'}`} onClick={() => setActiveTab('repair')}>
+              <button type="button" className={`nav-link fw-bold bg-transparent ${activeTab === 'repair' ? 'active border-bottom border-success border-3 text-success' : 'text-muted border-0'}`} onClick={() => setActiveTab('repair')}>
                 <Wrench size={18} className="me-2"/> Repair Handling
-              </a>
+              </button>
             </li>
             <li className="nav-item cursor-pointer" style={{ cursor: 'pointer' }}>
-              <a className={`nav-link fw-bold ${activeTab === 'scrap' ? 'active border-bottom border-danger border-3 text-danger' : 'text-muted border-0'}`} onClick={() => setActiveTab('scrap')}>
+              <button type="button" className={`nav-link fw-bold bg-transparent ${activeTab === 'scrap' ? 'active border-bottom border-danger border-3 text-danger' : 'text-muted border-0'}`} onClick={() => setActiveTab('scrap')}>
                 <Recycle size={18} className="me-2"/> Scrap Processing
-              </a>
+              </button>
             </li>
           </ul>
         </div>

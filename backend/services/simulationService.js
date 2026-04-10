@@ -161,6 +161,8 @@ async function compareScenarios(ids) {
     throw new AppError('Could not find enough scenarios to compare', 404, 'NOT_FOUND');
   }
 
+  const nameCounts = new Map();
+
   const comparison = scenarios.map((s) => {
     let resultData;
     try {
@@ -169,9 +171,14 @@ async function compareScenarios(ids) {
       logger.warn({ scenarioId: s.id }, 'Malformed result_data in scenario, using empty series');
       resultData = { series: [] };
     }
+    const seenCount = nameCounts.get(s.name) || 0;
+    nameCounts.set(s.name, seenCount + 1);
+    const displayName = seenCount === 0 ? s.name : `${s.name} #${s.id}`;
+
     return {
       id: s.id,
       name: s.name,
+      display_name: displayName,
       sales_change_pct: s.sales_change_pct,
       recycling_rate_change: s.recycling_rate_change,
       policy_factor: s.policy_factor,
@@ -184,11 +191,11 @@ async function compareScenarios(ids) {
   });
 
   const bestImpact = comparison.reduce((a, b) =>
-    parseFloat(a.impact_pct) < parseFloat(b.impact_pct) ? b : a
+    parseFloat(a.impact_pct) <= parseFloat(b.impact_pct) ? a : b
   );
 
   const worstImpact = comparison.reduce((a, b) =>
-    parseFloat(a.impact_pct) > parseFloat(b.impact_pct) ? b : a
+    parseFloat(a.impact_pct) >= parseFloat(b.impact_pct) ? a : b
   );
 
   const allYears = [...new Set(comparison.flatMap((s) => s.series.map((p) => p.year)))].sort();
@@ -198,7 +205,7 @@ async function compareScenarios(ids) {
     comparison.forEach((s) => {
       const point = s.series.find((p) => p.year === year);
       if (point) {
-        entry[s.name] = point.projected_disposal;
+        entry[s.display_name] = point.projected_disposal;
       }
     });
     return entry;
@@ -207,11 +214,11 @@ async function compareScenarios(ids) {
   return {
     scenarios: comparison,
     summary: {
-      best_scenario: bestImpact.name,
+      best_scenario: bestImpact.display_name,
       best_impact_pct: bestImpact.impact_pct,
-      worst_scenario: worstImpact.name,
+      worst_scenario: worstImpact.display_name,
       worst_impact_pct: worstImpact.impact_pct,
-      spread: (parseFloat(bestImpact.impact_pct) - parseFloat(worstImpact.impact_pct)).toFixed(2),
+      spread: Math.abs(parseFloat(bestImpact.impact_pct) - parseFloat(worstImpact.impact_pct)).toFixed(2),
     },
     year_by_year: yearByYear,
   };

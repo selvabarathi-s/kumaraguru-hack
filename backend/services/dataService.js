@@ -162,43 +162,43 @@ async function uploadFromRows(rows) {
 }
 
 async function getEwasteData(filters = {}) {
-  let sql = `SELECT e.*, r.latitude AS region_lat, r.longitude AS region_lng FROM ewaste_data e
+  let baseSql = `FROM ewaste_data e
     LEFT JOIN regions r ON e.region_id = r.id WHERE 1=1`;
   const params = [];
   if (filters.year) {
     const y = parseInt(filters.year, 10);
     if (!Number.isNaN(y)) {
-      sql += ' AND e.year = ?';
+      baseSql += ' AND e.year = ?';
       params.push(y);
     }
   }
   if (filters.region) {
-    sql += ' AND e.region LIKE ?';
+    baseSql += ' AND e.region LIKE ?';
     params.push(`%${filters.region}%`);
   }
   if (filters.device_category) {
-    sql += ' AND e.device_category = ?';
+    baseSql += ' AND e.device_category = ?';
     params.push(filters.device_category);
   }
 
   const page = Math.max(1, parseInt(filters.page, 10) || 1);
   const limit = Math.min(500, Math.max(1, parseInt(filters.limit, 10) || 100));
   const offset = (page - 1) * limit;
+  const countRows = await query(`SELECT COUNT(*) AS total ${baseSql}`, params);
+  const total = Number(countRows[0]?.total || 0);
 
-  const [countRows] = await require('../models/db').queryRaw
-    ? await require('../models/db').queryRaw(`SELECT COUNT(*) AS total FROM (${sql.replace(/ORDER BY.*$/, '')}) AS t`, params)
-    : [{ total: 0 }];
-
-  sql += ' ORDER BY e.year DESC LIMIT ? OFFSET ?';
-  const rows = await query(sql, [...params, limit, offset]);
+  const rows = await query(
+    `SELECT e.*, r.latitude AS region_lat, r.longitude AS region_lng ${baseSql} ORDER BY e.year DESC LIMIT ? OFFSET ?`,
+    [...params, limit, offset]
+  );
 
   return {
     data: rows,
     pagination: {
       page,
       limit,
-      total: countRows.total || rows.length,
-      hasMore: rows.length === limit,
+      total,
+      hasMore: offset + rows.length < total,
     },
   };
 }

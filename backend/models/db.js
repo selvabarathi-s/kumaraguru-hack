@@ -135,6 +135,32 @@ async function initDB() {
     `);
 
     await db.exec(`
+      CREATE TABLE IF NOT EXISTS hub_inventory (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        batch_id TEXT NOT NULL,
+        source TEXT NOT NULL,
+        category TEXT NOT NULL,
+        weight_kg REAL NOT NULL DEFAULT 0,
+        ai_classification TEXT,
+        destination TEXT DEFAULT 'Pending Assignment',
+        status TEXT DEFAULT 'Pending Classification',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS service_jobs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        job_type TEXT NOT NULL,
+        device_or_material TEXT NOT NULL,
+        issue_or_details TEXT,
+        weight_kg REAL DEFAULT 0,
+        status TEXT DEFAULT 'Pending',
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
+
+    await db.exec(`
       INSERT OR IGNORE INTO regions (name, latitude, longitude, admin_level) VALUES 
       ('Pollachi, Tamil Nadu', 10.6609, 77.0048, 'town'),
       ('Gandhipuram, Coimbatore', 11.0183, 76.9682, 'town'),

@@ -36,6 +36,11 @@ Thumbs.db
 cv-service/__pycache__/
 cv-service/*.pyc
 cv-service/data/
+cv-service/data_e-waste/
+cv-service/data_non_ewaste/
+cv-service/data_old/
+cv-service/TrashBox/
+cv-service/ewaste_classifier.pth
 ewaste_classifier.pth
 
 # Local Netlify folder

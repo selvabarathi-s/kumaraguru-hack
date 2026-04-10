@@ -139,7 +139,8 @@ const Simulation = () => {
   const compareChartData = compareResult?.year_by_year?.map((entry) => {
     const d = { year: entry.year };
     compareResult.scenarios.forEach((s) => {
-      d[s.name] = entry[s.name];
+      const label = s.display_name || s.name;
+      d[label] = entry[label];
     });
     return d;
   }) || [];
@@ -225,18 +226,18 @@ const Simulation = () => {
                   <div className="row g-3 mb-4">
                     <div className="col-md-6">
                       <div className="kpi-card">
-                        <div className="kpi-icon green"><TrendingDown size={20} /></div>
-                        <div>
-                          <div className="kpi-value" style={{ fontSize: '1rem', color: '#10b981' }}>{compareResult.summary.best_scenario}</div>
+                      <div className="kpi-icon green"><TrendingDown size={20} /></div>
+                      <div>
+                        <div className="kpi-value" style={{ fontSize: '1rem', color: '#10b981' }}>{compareResult.summary.best_scenario}</div>
                           <div className="kpi-label">Best Impact: {compareResult.summary.best_impact_pct}%</div>
                         </div>
                       </div>
                     </div>
                     <div className="col-md-6">
                       <div className="kpi-card">
-                        <div className="kpi-icon red"><TrendingUp size={20} /></div>
-                        <div>
-                          <div className="kpi-value" style={{ fontSize: '1rem', color: '#dc2626' }}>{compareResult.summary.worst_scenario}</div>
+                      <div className="kpi-icon red"><TrendingUp size={20} /></div>
+                      <div>
+                        <div className="kpi-value" style={{ fontSize: '1rem', color: '#dc2626' }}>{compareResult.summary.worst_scenario}</div>
                           <div className="kpi-label">Worst Impact: {compareResult.summary.worst_impact_pct}%</div>
                         </div>
                       </div>
@@ -250,7 +251,7 @@ const Simulation = () => {
                     <Chart
                       data={compareChartData}
                       xKey="year"
-                      yKeys={compareResult.scenarios.map((s) => s.name)}
+                      yKeys={compareResult.scenarios.map((s) => s.display_name || s.name)}
                       colors={['#6366f1', '#10b981', '#f59e0b', '#ec4899', '#06b6d4']}
                     />
                   </div>
@@ -275,7 +276,7 @@ const Simulation = () => {
                         <tbody>
                           {compareResult.scenarios.map((s) => (
                             <tr key={s.id}>
-                              <td><strong>{s.name}</strong></td>
+                              <td><strong>{s.display_name || s.name}</strong></td>
                               <td>{s.sales_change_pct > 0 ? '+' : ''}{s.sales_change_pct}%</td>
                               <td>+{s.recycling_rate_change}%</td>
                               <td>{s.policy_factor}x</td>
