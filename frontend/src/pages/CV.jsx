@@ -14,10 +14,14 @@ import {
   Monitor,
   Plug,
   WashingMachine,
+  Keyboard,
+  MousePointer2,
+  Printer,
+  Wifi,
+  Tablet,
   X,
   Trash2,
   History,
-  BarChart3,
 } from 'lucide-react';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
@@ -30,6 +34,18 @@ const CLASS_ICONS = {
   cable_wire: Plug,
   monitor_screen: Monitor,
   appliance: WashingMachine,
+  keyboard: Keyboard,
+  mouse: MousePointer2,
+  printer: Printer,
+  router: Wifi,
+  tablet: Tablet,
+  glass: Trash2,
+  medical: AlertCircle,
+  plastic: Trash2,
+  paper: ImageIcon,
+  metal: Trash2,
+  organic: Trash2,
+  textile: Trash2,
   non_ewaste: Trash2,
 };
 
@@ -41,6 +57,18 @@ const CLASS_COLORS = {
   cable_wire: '#06b6d4',
   monitor_screen: '#ec4899',
   appliance: '#f97316',
+  keyboard: '#14b8a6',
+  mouse: '#0ea5e9',
+  printer: '#84cc16',
+  router: '#3b82f6',
+  tablet: '#a855f7',
+  glass: '#64748b',
+  medical: '#dc2626',
+  plastic: '#0f766e',
+  paper: '#ca8a04',
+  metal: '#475569',
+  organic: '#16a34a',
+  textile: '#9333ea',
   non_ewaste: '#94a3b8',
 };
 
@@ -125,7 +153,14 @@ const CV = () => {
       }
       const data = await res.json();
       setSingleResult(data);
-      setFeedback({ text: `Detected: ${data.predicted_class.replace('_', ' ')} (${(data.confidence * 100).toFixed(1)}%)`, type: 'success' });
+      const classSummary = (data.ewaste_class_counts || data.class_counts || [])
+        .slice(0, 3)
+        .map((item) => `${item.display_name}: ${item.count}`)
+        .join(', ');
+      setFeedback({
+        text: `${data.primary_category === 'ewaste' ? 'Primary: E-Waste' : 'Primary: Mixed Waste'} • Objects found: ${data.object_count ?? 0}${classSummary ? ` • ${classSummary}` : ''}`,
+        type: 'success',
+      });
       loadHistory();
       loadStats();
     } catch (e) {
@@ -290,17 +325,25 @@ const CV = () => {
                     })()}
                     <div>
                       <h4 style={{ fontSize: '1.2rem', fontWeight: 700, textTransform: 'capitalize', marginBottom: 0 }}>
-                        {singleResult.predicted_class.replace('_', ' ')}
+                        {singleResult.primary_category === 'ewaste' ? 'E-Waste' : 'Mixed Waste'}
                       </h4>
                       <p className="text-muted small mb-0">
-                        {singleResult.is_ewaste ? 'Electronic Waste Detected' : 'Non-E-Waste'}
+                        {singleResult.primary_category === 'ewaste' ? 'Primary divider result: E-Waste' : 'Primary divider result: Mixed Waste'}
+                        {singleResult.secondary_category && ` • Secondary divider: ${singleResult.display_name}`}
                         {singleResult.device_category && ` • Category: ${singleResult.device_category}`}
                       </p>
                     </div>
                   </div>
 
+                  {singleResult.handling_instructions && (
+                    <div className="p-3 rounded border mb-3" style={{ background: '#f8fafc' }}>
+                      <div className="small text-muted mb-1">Handling Guidance</div>
+                      <div style={{ fontSize: '0.9rem' }}>{singleResult.handling_instructions}</div>
+                    </div>
+                  )}
+
                   <div className="row g-3 mb-3">
-                    <div className="col-4">
+                    <div className="col-6 col-md-3">
                       <div className="text-center p-2 rounded shadow-sm border">
                         <div style={{ fontWeight: 700, fontSize: '1.3rem', color: '#6366f1' }}>
                           {(singleResult.confidence * 100).toFixed(1)}%
@@ -308,7 +351,15 @@ const CV = () => {
                         <div className="text-muted small">Confidence</div>
                       </div>
                     </div>
-                    <div className="col-4">
+                    <div className="col-6 col-md-3">
+                      <div className="text-center p-2 rounded shadow-sm border">
+                        <div style={{ fontWeight: 700, fontSize: '1.3rem' }}>
+                          {singleResult.object_count ?? 0}
+                        </div>
+                        <div className="text-muted small">Objects Found</div>
+                      </div>
+                    </div>
+                    <div className="col-6 col-md-3">
                       <div className="text-center p-2 rounded shadow-sm border">
                         <div style={{ fontWeight: 700, fontSize: '1.3rem' }}>
                           ~{singleResult.estimated_weight_kg} kg
@@ -316,7 +367,7 @@ const CV = () => {
                         <div className="text-muted small">Est. Weight</div>
                       </div>
                     </div>
-                    <div className="col-4">
+                    <div className="col-6 col-md-3">
                       <div className="text-center p-2 rounded shadow-sm border">
                         <div style={{ fontWeight: 700, fontSize: '1.3rem' }}>
                           {singleResult.device_category || '—'}
@@ -326,7 +377,7 @@ const CV = () => {
                     </div>
                   </div>
 
-                  <h6 style={{ fontSize: '0.9rem', fontWeight: 600 }}>All Class Probabilities</h6>
+                  <h6 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Model Class Probabilities</h6>
                   <div className="d-flex flex-column gap-2">
                     {Object.entries(singleResult.all_probabilities)
                       .sort((a, b) => b[1] - a[1])
@@ -356,6 +407,109 @@ const CV = () => {
                         );
                       })}
                   </div>
+
+                  {singleResult.top_predictions?.length > 0 && (
+                    <div className="mt-4">
+                      <h6 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Top Predictions</h6>
+                      <div className="d-flex flex-wrap gap-2">
+                        {singleResult.top_predictions.map((item) => (
+                          <span key={item.class_name} className="badge bg-light text-dark">
+                            {item.display_name} {(item.probability * 100).toFixed(1)}%
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {singleResult.primary_class_counts?.length > 0 && (
+                    <div className="mt-4">
+                      <h6 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Primary Divider Counts</h6>
+                      <div className="row g-2">
+                        {singleResult.primary_class_counts.map((item) => (
+                          <div key={item.category} className="col-sm-6">
+                            <div className="d-flex align-items-center justify-content-between p-2 rounded border">
+                              <span style={{ fontSize: '0.9rem' }}>
+                                {item.category === 'ewaste' ? 'E-Waste' : 'Mixed Waste'}
+                              </span>
+                              <strong>{item.count}</strong>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {singleResult.ewaste_class_counts?.length > 0 && (
+                    <div className="mt-4">
+                      <h6 style={{ fontSize: '0.9rem', fontWeight: 600 }}>E-Waste Counts by Type</h6>
+                      <div className="row g-2">
+                        {singleResult.ewaste_class_counts.map((item) => {
+                          const Icon = CLASS_ICONS[item.class_name] || ImageIcon;
+                          return (
+                            <div key={item.class_name} className="col-sm-6">
+                              <div className="d-flex align-items-center justify-content-between p-2 rounded border">
+                                <div className="d-flex align-items-center gap-2">
+                                  <Icon size={16} style={{ color: CLASS_COLORS[item.class_name] }} />
+                                  <span style={{ fontSize: '0.9rem' }}>{item.display_name}</span>
+                                </div>
+                                <strong>{item.count}</strong>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {singleResult.mixed_class_counts?.length > 0 && (
+                    <div className="mt-4">
+                      <h6 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Optional Mixed Waste Divider</h6>
+                      <div className="row g-2">
+                        {singleResult.mixed_class_counts.map((item) => {
+                          const Icon = CLASS_ICONS[item.class_name] || ImageIcon;
+                          return (
+                            <div key={item.class_name} className="col-sm-6">
+                              <div className="d-flex align-items-center justify-content-between p-2 rounded border">
+                                <div className="d-flex align-items-center gap-2">
+                                  <Icon size={16} style={{ color: CLASS_COLORS[item.class_name] }} />
+                                  <span style={{ fontSize: '0.9rem' }}>{item.display_name}</span>
+                                </div>
+                                <strong>{item.count}</strong>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {singleResult.detected_objects?.length > 0 && (
+                    <div className="mt-4">
+                      <h6 style={{ fontSize: '0.9rem', fontWeight: 600 }}>Per-Object Predictions</h6>
+                      <div className="d-flex flex-column gap-2">
+                        {singleResult.detected_objects.map((item) => {
+                          const Icon = CLASS_ICONS[item.predicted_class] || ImageIcon;
+                          return (
+                            <div key={item.id} className="d-flex align-items-center justify-content-between p-2 rounded border">
+                              <div className="d-flex align-items-center gap-2">
+                                <Icon size={16} style={{ color: CLASS_COLORS[item.predicted_class] }} />
+                                <span style={{ fontSize: '0.9rem' }}>
+                                  Object {item.id}: {item.primary_category === 'ewaste' ? item.display_name : `Mixed Waste${item.secondary_category ? ` / ${item.display_name}` : ''}`}
+                                </span>
+                              </div>
+                              <span className="text-muted small">{(item.confidence * 100).toFixed(1)}%</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+
+                  {singleResult.count_method && (
+                    <p className="text-muted small mt-3 mb-0">
+                      Counts and per-object labels are estimated from approximate image regions, not a full object detector.
+                    </p>
+                  )}
                 </div>
               </div>
             ) : (
@@ -451,6 +605,7 @@ const CV = () => {
                       <th>Class</th>
                       <th>Confidence</th>
                       <th>E-Waste</th>
+                      <th>Objects</th>
                       <th>Category</th>
                       <th>Est. Weight</th>
                     </tr>
@@ -468,6 +623,7 @@ const CV = () => {
                             </span>
                           ) : '—'}
                         </td>
+                        <td>{r.object_count ?? '—'}</td>
                         <td>{r.device_category || '—'}</td>
                         <td>{r.estimated_weight_kg != null ? `~${r.estimated_weight_kg} kg` : '—'}</td>
                       </tr>

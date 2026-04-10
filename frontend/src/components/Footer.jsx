@@ -15,7 +15,7 @@ const Footer = () => {
           </div>
           <div className="col-md-6 text-md-end">
             <span className="text-muted" style={{ fontSize: '0.85rem' }}>
-              Built for Kumaraguru Hackathon 2026
+              FusionFest
             </span>
           </div>
         </div>
