@@ -349,5 +349,150 @@ def classify_batch():
 load_model()
 
 
+# ─── Condition inference helpers ──────────────────────────────────────────
+
+CONDITION_CLASSES = ["good", "repairable", "damaged", "scrap"]
+
+
+def infer_condition(confidence: float, primary_category: str, class_name: str) -> str:
+    """
+    Heuristically estimate device condition from classifier output.
+    A real production system would use a dedicated damage-detection model.
+    """
+    if primary_category != "ewaste":
+        return "scrap"
+    # Very high confidence on a clean class  →  good
+    if confidence >= 0.80:
+        return "good"
+    if confidence >= 0.60:
+        return "repairable"
+    if confidence >= 0.40:
+        return "damaged"
+    return "scrap"
+
+
+def aggregate_multi_image(results: list[dict]) -> dict:
+    """
+    Combine predictions from multiple images using a confidence-weighted vote.
+    """
+    if len(results) == 1:
+        return results[0]
+
+    # Accumulate per-class weighted probabilities
+    class_scores: dict[str, float] = {}
+    total_weight = 0.0
+
+    for r in results:
+        w = r["confidence"]
+        total_weight += w
+        for cls, prob in r.get("all_probabilities", {}).items():
+            class_scores[cls] = class_scores.get(cls, 0.0) + prob * w
+
+    if total_weight == 0:
+        return results[0]
+
+    for cls in class_scores:
+        class_scores[cls] /= total_weight
+
+    best_class = max(class_scores, key=lambda c: class_scores[c])
+    best_conf = class_scores[best_class]
+
+    meta = get_class_metadata(best_class)
+    is_ew = is_ewaste_class(best_class)
+    primary = get_primary_category(best_class)
+
+    sorted_preds = sorted(
+        [{"class_name": c, "display_name": get_class_metadata(c)["display_name"], "probability": round(p, 4)}
+         for c, p in class_scores.items()],
+        key=lambda x: x["probability"],
+        reverse=True,
+    )
+
+    return {
+        "predicted_class": best_class,
+        "display_name": meta["display_name"],
+        "confidence": round(best_conf, 4),
+        "is_ewaste": is_ew,
+        "primary_category": primary,
+        "device_category": meta["device_category"],
+        "estimated_weight_kg": meta["estimated_weight_kg"],
+        "handling_instructions": meta["handling_instructions"],
+        "all_probabilities": {k: round(v, 4) for k, v in class_scores.items()},
+        "top_predictions": sorted_preds[:3],
+        "images_analyzed": len(results),
+    }
+
+
+@app.route("/detect-device", methods=["POST"])
+def detect_device():
+    """
+    Accepts 1–5 images as multipart 'images' field.
+    Returns device type, condition, and structured prediction data
+    for material-recovery calculation in the Node.js backend.
+    """
+    files = request.files.getlist("images")
+    if not files:
+        return jsonify({"error": "Provide 1–5 images as multipart 'images' fields"}), 400
+    if len(files) > 5:
+        return jsonify({"error": "Maximum 5 images allowed"}), 400
+
+    per_image_results = []
+    for f in files:
+        try:
+            result = predict_image(f.read())
+            result["filename"] = f.filename
+            per_image_results.append(result)
+        except Exception as exc:
+            # Skip bad images but don't crash the whole request
+            per_image_results.append({
+                "filename": f.filename,
+                "error": str(exc),
+                "predicted_class": "unknown",
+                "confidence": 0.0,
+                "all_probabilities": {},
+                "is_ewaste": False,
+                "primary_category": "mixed_waste",
+                "device_category": None,
+                "estimated_weight_kg": 0,
+                "top_predictions": [],
+                "display_name": "Unknown",
+                "handling_instructions": "",
+            })
+
+    valid = [r for r in per_image_results if "error" not in r]
+    if not valid:
+        return jsonify({"error": "All images failed to process", "details": per_image_results}), 422
+
+    aggregated = aggregate_multi_image(valid)
+    condition = infer_condition(
+        aggregated["confidence"],
+        aggregated["primary_category"],
+        aggregated["predicted_class"],
+    )
+
+    return jsonify({
+        "device_type": aggregated["predicted_class"],
+        "device_display": aggregated["display_name"],
+        "condition": condition,
+        "confidence": aggregated["confidence"],
+        "is_ewaste": aggregated["is_ewaste"],
+        "primary_category": aggregated["primary_category"],
+        "device_category": aggregated["device_category"],
+        "estimated_weight_kg": aggregated["estimated_weight_kg"],
+        "handling_instructions": aggregated["handling_instructions"],
+        "top_predictions": aggregated["top_predictions"],
+        "all_probabilities": aggregated["all_probabilities"],
+        "images_analyzed": len(valid),
+        "per_image_results": [
+            {
+                "filename": r.get("filename", ""),
+                "predicted_class": r.get("predicted_class", ""),
+                "confidence": r.get("confidence", 0),
+            }
+            for r in per_image_results
+        ],
+    })
+
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5002, debug=True)
+    app.run(host="0.0.0.0", port=5002, debug=False)

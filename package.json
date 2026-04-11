@@ -12,7 +12,7 @@
     "setup:cv": "cd cv-service && python -m pip install -r requirements.txt && python train.py",
     "dev:cv": "cd cv-service && python app.py",
     "build:frontend": "cd frontend && npm run build",
-    "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:ml\"",
+    "dev:all": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:ml\" \"npm run dev:cv\"",
     "dev:full": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\" \"npm run dev:ml\" \"npm run dev:cv\""
   },
   "keywords": [

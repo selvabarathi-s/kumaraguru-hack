@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogIn, User, Building, Settings, Shield } from 'lucide-react';
+import { LogIn, User, Building, Settings, Shield, Factory, GraduationCap } from 'lucide-react';
 
 const Login = ({ onLogin }) => {
   const navigate = useNavigate();
@@ -14,42 +14,52 @@ const Login = ({ onLogin }) => {
     { id: 'admin', name: 'Admin', icon: <Shield size={40} className="mb-2" />, desc: 'Government / Authority' },
     { id: 'hub', name: 'Hub', icon: <Building size={40} className="mb-2" />, desc: 'Collection & Inventory' },
     { id: 'customer', name: 'Customer', icon: <User size={40} className="mb-2" />, desc: 'Public User' },
-    { id: 'service', name: 'Service', icon: <Settings size={40} className="mb-2" />, desc: 'Repair & Recycling' }
+    { id: 'service', name: 'Service', icon: <Settings size={40} className="mb-2" />, desc: 'Repair & Recycling' },
+    { id: 'industry', name: 'Industry', icon: <Factory size={40} className="mb-2" />, desc: 'B2B Disposal & Compliance' },
+    { id: 'institute', name: 'Institute', icon: <GraduationCap size={40} className="mb-2" />, desc: 'Research & Refurbishing' }
   ];
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
 
-    // Hardcoded credentials for demonstration
-    const validCredentials = {
-      admin: { u: 'admin', p: 'admin123', path: '/' },
-      hub: { u: 'hub', p: 'hub123', path: '/hub' },
-      customer: { u: 'customer', p: 'customer123', path: '/customer' },
-      service: { u: 'service', p: 'service123', path: '/service' }
-    };
-
-    if (isRegister && selectedRole !== 'admin') {
-      if (!username || !password) {
-        setError('Please enter username and password to register.');
-        return;
-      }
-      onLogin({ role: selectedRole, username });
-      const pathMap = {
-        hub: '/hub',
-        customer: '/customer',
-        service: '/service'
-      };
-      navigate(pathMap[selectedRole]);
+    const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
+    
+    // For admin, currently keep hardcoded as a fail-safe, but others go to DB
+    if (selectedRole === 'admin' && username === 'admin' && password === 'admin123') {
+      onLogin({ role: 'admin', username });
+      navigate('/');
+      return;
+    } else if (selectedRole === 'admin') {
+      setError('Invalid admin credentials.');
       return;
     }
 
-    const creds = validCredentials[selectedRole];
-    if (username === creds.u && password === creds.p) {
-      onLogin({ role: selectedRole, username });
-      navigate(creds.path);
-    } else {
-      setError('Invalid username or password. Please use the default credentials.');
+    try {
+      const endpoint = isRegister ? '/auth/register' : '/auth/login';
+      const res = await fetch(`${BASE_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, role: selectedRole })
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        onLogin({ role: selectedRole, username });
+        const pathMap = {
+          hub: '/hub',
+          customer: '/customer',
+          service: '/service',
+          industry: '/industry',
+          institute: '/institute'
+        };
+        navigate(pathMap[selectedRole]);
+      } else {
+        setError(data.error || 'Authentication failed');
+      }
+    } catch (err) {
+      setError('Failed to connect to the server.');
     }
   };
 
@@ -99,7 +109,7 @@ const Login = ({ onLogin }) => {
                     placeholder={`Enter ${selectedRole} username`}
                     required
                   />
-                  <div className="form-text">Hint: {selectedRole}</div>
+                  <div className="form-text">{isRegister ? 'Choose a unique username' : 'Enter your registered username'}</div>
                 </div>
                 
                 <div className="mb-4">
@@ -112,7 +122,7 @@ const Login = ({ onLogin }) => {
                     placeholder="Enter password"
                     required
                   />
-                  <div className="form-text">Hint: {selectedRole}123</div>
+                  <div className="form-text">Secure password required.</div>
                 </div>
 
                 <div className="d-grid gap-2">

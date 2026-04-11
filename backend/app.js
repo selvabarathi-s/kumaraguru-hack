@@ -12,6 +12,10 @@ const alertRoutes = require('./routes/alertRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const hubRoutes = require('./routes/hubRoutes');
 const serviceRoutes = require('./routes/serviceRoutes');
+const industryRoutes = require('./routes/industryRoutes');
+const instituteRoutes = require('./routes/instituteRoutes');
+const authRoutes = require('./routes/authRoutes');
+const deviceAnalyzerRoutes = require('./routes/deviceAnalyzerRoutes');
 const { initDB } = require('./models/db');
 const { migrateSimulationTables } = require('./models/simulationDb');
 const config = require('./config/config');
@@ -43,6 +47,10 @@ app.use('/api', alertRoutes);
 app.use('/api', customerRoutes);
 app.use('/api', hubRoutes);
 app.use('/api', serviceRoutes);
+app.use('/api/industry', industryRoutes);
+app.use('/api/institute', instituteRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api', deviceAnalyzerRoutes);
 
 app.use((req, res) => {
   res.status(404).json({ error: { code: 'NOT_FOUND', message: 'Not found' } });

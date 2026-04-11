@@ -17,6 +17,9 @@ import Login from './pages/Login';
 import CustomerDashboard from './pages/CustomerDashboard';
 import HubDashboard from './pages/HubDashboard';
 import ServiceDashboard from './pages/ServiceDashboard';
+import IndustryDashboard from './pages/IndustryDashboard';
+import InstituteDashboard from './pages/InstituteDashboard';
+import DeviceAnalyzer from './pages/DeviceAnalyzer';
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -75,6 +78,7 @@ function App() {
               {user.role === 'hub' && (
                 <>
                   <Route path="/hub" element={<HubDashboard />} />
+                  <Route path="/device-analyzer" element={<DeviceAnalyzer />} />
                   <Route path="*" element={<Navigate to="/hub" replace />} />
                 </>
               )}
@@ -83,6 +87,7 @@ function App() {
                 <>
                   <Route path="/customer" element={<CustomerDashboard />} />
                   <Route path="/cv" element={<CV />} />
+                  <Route path="/device-analyzer" element={<DeviceAnalyzer />} />
                   <Route path="*" element={<Navigate to="/customer" replace />} />
                 </>
               )}
@@ -90,7 +95,24 @@ function App() {
               {user.role === 'service' && (
                 <>
                   <Route path="/service" element={<ServiceDashboard />} />
+                  <Route path="/device-analyzer" element={<DeviceAnalyzer />} />
                   <Route path="*" element={<Navigate to="/service" replace />} />
+                </>
+              )}
+
+              {user.role === 'industry' && (
+                <>
+                  <Route path="/industry" element={<IndustryDashboard />} />
+                  <Route path="/device-analyzer" element={<DeviceAnalyzer />} />
+                  <Route path="*" element={<Navigate to="/industry" replace />} />
+                </>
+              )}
+
+              {user.role === 'institute' && (
+                <>
+                  <Route path="/institute" element={<InstituteDashboard />} />
+                  <Route path="/device-analyzer" element={<DeviceAnalyzer />} />
+                  <Route path="*" element={<Navigate to="/institute" replace />} />
                 </>
               )}
             </>

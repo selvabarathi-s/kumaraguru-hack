@@ -38,7 +38,7 @@ router.post('/classify', upload.single('image'), async (req, res) => {
     formData.append('image', req.file.buffer, { filename: req.file.originalname, contentType: req.file.mimetype });
 
     const response = await axios.post(`${CV_URL}/classify`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { ...formData.getHeaders() },
       timeout: 30000,
     });
 
@@ -60,7 +60,7 @@ router.post('/classify/batch', upload.array('images', 20), async (req, res) => {
     req.files.forEach((f) => formData.append('images', f.buffer, { filename: f.originalname, contentType: f.mimetype }));
 
     const response = await axios.post(`${CV_URL}/classify/batch`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+      headers: { ...formData.getHeaders() },
       timeout: 60000,
     });
 

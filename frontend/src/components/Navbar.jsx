@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { BarChart3, Upload, TrendingUp, Menu, X, Zap, Shield, Lightbulb, Camera, LogOut, User, Building, Settings, Sun, Moon, Palette } from 'lucide-react';
+import { BarChart3, Upload, TrendingUp, Menu, X, Zap, Shield, Lightbulb, Camera, LogOut, User, Building, Settings, Sun, Moon, Palette, Factory, GraduationCap, Cpu } from 'lucide-react';
 
 const Navbar = ({ user, onLogout, theme, setTheme }) => {
   const location = useLocation();
@@ -71,36 +71,86 @@ const Navbar = ({ user, onLogout, theme, setTheme }) => {
               </>
             )}
 
-            {user && user.role === 'customer' && (
+              {user && user.role === 'customer' && (
+                <>
+                  <li className="nav-item">
+                      <Link className={`nav-link ${isActive('/customer')}`} to="/customer" onClick={() => setIsOpen(false)}>
+                        <User size={16} className="me-1" /> Customer Area
+                      </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link className={`nav-link ${isActive('/cv')}`} to="/cv" onClick={() => setIsOpen(false)}>
+                      <Camera size={16} className="me-1" />
+                      CV Detection
+                    </Link>
+                  </li>
+                  <li className="nav-item">
+                    <Link className={`nav-link ${isActive('/device-analyzer')}`} to="/device-analyzer" onClick={() => setIsOpen(false)}>
+                      <Cpu size={16} className="me-1" />
+                      AI Analyzer
+                    </Link>
+                  </li>
+                </>
+              )}
+
+            {user && user.role === 'hub' && (
               <>
                 <li className="nav-item">
-                    <Link className={`nav-link ${isActive('/customer')}`} to="/customer" onClick={() => setIsOpen(false)}>
-                      <User size={16} className="me-1" /> Customer Area
+                    <Link className={`nav-link ${isActive('/hub')}`} to="/hub" onClick={() => setIsOpen(false)}>
+                      <Building size={16} className="me-1" /> Hub Dashboard
                     </Link>
                 </li>
                 <li className="nav-item">
-                  <Link className={`nav-link ${isActive('/cv')}`} to="/cv" onClick={() => setIsOpen(false)}>
-                    <Camera size={16} className="me-1" />
-                    CV Detection
+                  <Link className={`nav-link ${isActive('/device-analyzer')}`} to="/device-analyzer" onClick={() => setIsOpen(false)}>
+                    <Cpu size={16} className="me-1" /> AI Analyzer
                   </Link>
                 </li>
               </>
             )}
 
-            {user && user.role === 'hub' && (
-              <li className="nav-item">
-                  <Link className={`nav-link ${isActive('/hub')}`} to="/hub" onClick={() => setIsOpen(false)}>
-                    <Building size={16} className="me-1" /> Hub Dashboard
+            {user && user.role === 'service' && (
+              <>
+                <li className="nav-item">
+                    <Link className={`nav-link ${isActive('/service')}`} to="/service" onClick={() => setIsOpen(false)}>
+                      <Settings size={16} className="me-1" /> Service Panel
+                    </Link>
+                </li>
+                <li className="nav-item">
+                  <Link className={`nav-link ${isActive('/device-analyzer')}`} to="/device-analyzer" onClick={() => setIsOpen(false)}>
+                    <Cpu size={16} className="me-1" /> AI Analyzer
                   </Link>
-              </li>
+                </li>
+              </>
             )}
 
-            {user && user.role === 'service' && (
-              <li className="nav-item">
-                  <Link className={`nav-link ${isActive('/service')}`} to="/service" onClick={() => setIsOpen(false)}>
-                    <Settings size={16} className="me-1" /> Service Panel
+            {user && user.role === 'industry' && (
+              <>
+                <li className="nav-item">
+                    <Link className={`nav-link ${isActive('/industry')}`} to="/industry" onClick={() => setIsOpen(false)}>
+                      <Factory size={16} className="me-1" /> Industry Portal
+                    </Link>
+                </li>
+                <li className="nav-item">
+                  <Link className={`nav-link ${isActive('/device-analyzer')}`} to="/device-analyzer" onClick={() => setIsOpen(false)}>
+                    <Cpu size={16} className="me-1" /> AI Analyzer
                   </Link>
-              </li>
+                </li>
+              </>
+            )}
+
+            {user && user.role === 'institute' && (
+              <>
+                <li className="nav-item">
+                    <Link className={`nav-link ${isActive('/institute')}`} to="/institute" onClick={() => setIsOpen(false)}>
+                      <GraduationCap size={16} className="me-1" /> Institute Hub
+                    </Link>
+                </li>
+                <li className="nav-item">
+                  <Link className={`nav-link ${isActive('/device-analyzer')}`} to="/device-analyzer" onClick={() => setIsOpen(false)}>
+                    <Cpu size={16} className="me-1" /> AI Analyzer
+                  </Link>
+                </li>
+              </>
             )}
 
             {user && (
