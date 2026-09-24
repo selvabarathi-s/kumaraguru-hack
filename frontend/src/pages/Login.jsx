@@ -3,13 +3,44 @@ import { useNavigate } from 'react-router-dom';
 import { LogIn, User, Building, Settings, Shield, Factory, GraduationCap } from 'lucide-react';
 import { API_BASE as BASE_URL } from '../services/apiBase';
 
+const demoCredentials = {
+  admin: { username: 'admin', password: 'admin123' },
+  hub: { username: 'hub', password: 'hub123' },
+  customer: { username: 'customer', password: 'customer123' },
+  service: { username: 'service', password: 'service123' },
+  industry: { username: 'industry', password: 'industry123' },
+  institute: { username: 'institute', password: 'institute123' }
+};
+
 const Login = ({ onLogin }) => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
   const [selectedRole, setSelectedRole] = useState('admin');
+  const [username, setUsername] = useState('admin');
+  const [password, setPassword] = useState('admin123');
+  const [error, setError] = useState('');
   const [isRegister, setIsRegister] = useState(false);
+
+  const handleRoleSelect = (roleId) => {
+    setSelectedRole(roleId);
+    setError('');
+    if (!isRegister && demoCredentials[roleId]) {
+      setUsername(demoCredentials[roleId].username);
+      setPassword(demoCredentials[roleId].password);
+    }
+  };
+
+  const toggleRegister = () => {
+    const nextRegister = !isRegister;
+    setIsRegister(nextRegister);
+    setError('');
+    if (!nextRegister && demoCredentials[selectedRole]) {
+      setUsername(demoCredentials[selectedRole].username);
+      setPassword(demoCredentials[selectedRole].password);
+    } else if (nextRegister) {
+      setUsername('');
+      setPassword('');
+    }
+  };
 
   const roles = [
     { id: 'admin', name: 'Admin', icon: <Shield size={40} className="mb-2" />, desc: 'Government / Authority' },
@@ -74,7 +105,7 @@ const Login = ({ onLogin }) => {
           <div key={role.id} className="col-6 col-md-3 mb-3">
             <div 
               className={`card text-center p-3 cursor-pointer transition ${selectedRole === role.id ? 'border-primary bg-primary text-white' : 'border-secondary'}`}
-              onClick={() => { setSelectedRole(role.id); setError(''); }}
+              onClick={() => handleRoleSelect(role.id)}
               style={{ cursor: 'pointer', transition: '0.3s' }}
             >
               <div className="card-body p-0">
@@ -135,7 +166,7 @@ const Login = ({ onLogin }) => {
                     <button 
                       type="button" 
                       className="btn btn-link text-decoration-none" 
-                      onClick={() => setIsRegister(!isRegister)}
+                      onClick={toggleRegister}
                     >
                       {isRegister ? 'Already have an account? Sign In' : 'New user? Create an account'}
                     </button>
