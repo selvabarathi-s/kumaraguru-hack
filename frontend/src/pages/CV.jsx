@@ -23,8 +23,7 @@ import {
   Trash2,
   History,
 } from 'lucide-react';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+import { API_BASE } from '../services/apiBase';
 
 const CLASS_ICONS = {
   mobile_phone: Smartphone,

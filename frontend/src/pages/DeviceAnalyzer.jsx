@@ -6,8 +6,7 @@ import {
   Printer, Wifi, Tablet, Battery, Image as ImageIcon,
   ChevronRight, Info, TrendingUp, Package
 } from 'lucide-react';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+import { API_BASE } from '../services/apiBase';
 
 // ─── Material color palette ────────────────────────────────────────────────
 const MATERIAL_COLORS = {

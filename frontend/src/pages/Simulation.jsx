@@ -14,6 +14,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import Chart from '../components/Chart';
+import { API_BASE } from '../services/apiBase';
 
 const parseApiError = (error) => {
   if (!error.response) return error.message || 'Network error';
@@ -22,8 +23,6 @@ const parseApiError = (error) => {
   if (typeof d === 'string') return d;
   return error.message || 'Request failed';
 };
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const Simulation = () => {
   const [params, setParams] = useState({

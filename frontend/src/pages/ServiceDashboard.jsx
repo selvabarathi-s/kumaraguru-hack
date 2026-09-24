@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Wrench, Recycle, CheckCircle, Activity, Box, Settings, Trash2 } from 'lucide-react';
+import { API_BASE } from '../services/apiBase';
 
 const ServiceDashboard = () => {
   const [activeTab, setActiveTab] = useState('repair');
   const [jobs, setJobs] = useState([]);
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
   // Form State
   const [jobType, setJobType] = useState('Repair');

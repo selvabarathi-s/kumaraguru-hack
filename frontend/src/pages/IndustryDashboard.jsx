@@ -7,6 +7,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer,
   PieChart, Pie, Cell, LineChart, Line
 } from 'recharts';
+import { API_BASE as BASE_URL } from '../services/apiBase';
 
 const IndustryDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
@@ -21,7 +22,6 @@ const IndustryDashboard = () => {
   const handleDisposalSubmit = async (e) => {
     e.preventDefault();
     try {
-      const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
       const res = await fetch(`${BASE_URL}/industry/disposals`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

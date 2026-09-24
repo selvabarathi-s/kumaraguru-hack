@@ -17,8 +17,7 @@ import {
   ChevronRight,
   RefreshCw
 } from 'lucide-react';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+import { API_BASE } from '../services/apiBase';
 
 const Recommendations = () => {
   const [data, setData] = useState(null);

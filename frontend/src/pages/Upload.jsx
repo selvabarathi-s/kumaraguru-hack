@@ -1,8 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { uploadData } from '../services/api';
+import { API_BASE } from '../services/apiBase';
 import { UploadCloud, FileText, CheckCircle, XCircle, Loader2, AlertCircle, Eye, Table } from 'lucide-react';
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const Upload = () => {
   const [file, setFile] = useState(null);

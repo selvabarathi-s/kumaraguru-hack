@@ -36,10 +36,25 @@ async function transaction(callback) {
   await db.run('BEGIN TRANSACTION');
   try {
     const txQuery = async (sql, params = []) => {
-      return db.all(sql, params);
+      const statement = sql.trim().toLowerCase();
+      if (
+        statement.startsWith('select') ||
+        statement.startsWith('pragma') ||
+        statement.startsWith('with')
+      ) {
+        return db.all(sql, params);
+      }
+
+      const result = await db.run(sql, params);
+      return {
+        insertId: result.lastID,
+        affectedRows: result.changes,
+        changes: result.changes,
+        lastID: result.lastID,
+      };
     };
     const result = await callback(txQuery);
-    await db.commit();
+    await db.run('COMMIT');
     return result;
   } catch (err) {
     await db.run('ROLLBACK');

@@ -1,8 +1,11 @@
 import axios from 'axios';
+import { API_BASE } from './apiBase';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
+  baseURL: API_BASE,
 });
+
+export { API_BASE };
 
 export const uploadData = (formData) => api.post('/upload', formData);
 export const getEwasteData = (params) => api.get('/data', { params });

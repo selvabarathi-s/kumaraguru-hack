@@ -1,13 +1,35 @@
 services:
-  # Node.js Backend API
+  # 1. React Frontend (Vite SPA Static Site)
+  - type: static
+    name: e-waste-frontend
+    rootDir: "frontend"
+    buildCommand: "npm install && npm run build"
+    staticPublishPath: "./dist"
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    envVars:
+      - key: VITE_API_BASE_URL
+        fromService:
+          type: web
+          name: e-waste-backend
+          envVarKey: RENDER_EXTERNAL_URL
+
+  # 2. Node.js Backend API
   - type: web
     name: e-waste-backend
     env: node
     plan: free
+    rootDir: "backend"
     buildCommand: "npm install"
     startCommand: "node app.js"
-    rootDir: "backend"
+    healthCheckPath: "/health"
     envVars:
+      - key: NODE_ENV
+        value: "production"
+      - key: NODE_VERSION
+        value: "20.18.0"
       - key: FLASK_URL
         fromService:
           type: web
@@ -19,26 +41,28 @@ services:
           name: e-waste-cv
           envVarKey: RENDER_EXTERNAL_URL
 
-  # Python Machine Learning Service
+  # 3. Python Machine Learning Service
   - type: web
     name: e-waste-ml
     env: python
     plan: free
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn -w 1 --threads 2 --timeout 120 -b 0.0.0.0:$PORT app:app"
     rootDir: "ml-service"
+    buildCommand: "pip install -r requirements.txt && python train.py"
+    startCommand: "gunicorn -w 1 --threads 2 --timeout 120 -b 0.0.0.0:$PORT app:app"
+    healthCheckPath: "/health"
     envVars:
       - key: PYTHON_VERSION
         value: "3.10.12"
 
-  # Python Computer Vision Service
+  # 4. Python Computer Vision Service
   - type: web
     name: e-waste-cv
     env: python
     plan: free
-    buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn -w 1 --threads 2 --timeout 120 -b 0.0.0.0:$PORT app:app"
     rootDir: "cv-service"
+    buildCommand: "pip install --extra-index-url https://download.pytorch.org/whl/cpu -r requirements.txt"
+    startCommand: "gunicorn -w 1 --threads 2 --timeout 120 -b 0.0.0.0:$PORT app:app"
+    healthCheckPath: "/health"
     envVars:
       - key: PYTHON_VERSION
         value: "3.10.12"

@@ -13,6 +13,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import Chart from '../components/Chart';
+import { API_BASE } from '../services/apiBase';
 
 const RISK_COLORS = {
   Green: '#10b981',
@@ -25,8 +26,6 @@ const RISK_ICONS = {
   Yellow: Shield,
   Red: ShieldAlert,
 };
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
 
 const Sustainability = () => {
   const [scores, setScores] = useState([]);

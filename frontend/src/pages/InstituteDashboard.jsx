@@ -6,6 +6,7 @@ import {
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer
 } from 'recharts';
+import { API_BASE as BASE_URL } from '../services/apiBase';
 
 const InstituteDashboard = () => {
   const [activeTab, setActiveTab] = useState('lab');
@@ -20,7 +21,6 @@ const InstituteDashboard = () => {
 
   const fetchDevices = async () => {
     try {
-      const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
       const res = await fetch(`${BASE_URL}/institute/devices`);
       if (res.ok) {
         const data = await res.json();
@@ -33,7 +33,6 @@ const InstituteDashboard = () => {
 
   const updateDeviceStatus = async (id, currentStatus) => {
     try {
-      const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
       const newStatus = currentStatus === 'Awaiting Diagnostics' ? 'Repairing' : 'Refurbished';
       const res = await fetch(`${BASE_URL}/institute/devices/${id}/status`, {
         method: 'PUT',

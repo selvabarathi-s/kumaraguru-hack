@@ -3,6 +3,7 @@ const multer = require('multer');
 const axios = require('axios');
 const FormData = require('form-data');
 const { query } = require('../models/db');
+const config = require('../config/config');
 
 const router = express.Router();
 const upload = multer({
@@ -10,7 +11,7 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024, files: 5 },
 });
 
-const CV_URL = process.env.CV_URL || 'http://localhost:5002';
+const CV_URL = config.cvUrl || process.env.CV_URL || 'http://localhost:5002';
 const CV_FALLBACK_CONDITION = { ewaste: 'repairable', mixed_waste: 'scrap' };
 
 // ─── Material composition database (grams per device type) ────────────────

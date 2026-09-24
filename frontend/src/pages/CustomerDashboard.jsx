@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Smartphone, MapPin, Truck, RefreshCw, Cpu, Award, Trash2, Leaf, ShieldAlert, BarChart2 } from 'lucide-react';
+import { API_BASE } from '../services/apiBase';
 
 const CustomerDashboard = () => {
   const [deviceType, setDeviceType] = useState('phone');
@@ -8,7 +9,6 @@ const CustomerDashboard = () => {
   const [suggestion, setSuggestion] = useState(null);
   const [devices, setDevices] = useState([]);
   const [pickupMessage, setPickupMessage] = useState('');
-  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
   
   // Environmental constants for quantification
   const ECO_METRICS = {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogIn, User, Building, Settings, Shield, Factory, GraduationCap } from 'lucide-react';
+import { API_BASE as BASE_URL } from '../services/apiBase';
 
 const Login = ({ onLogin }) => {
   const navigate = useNavigate();
@@ -22,8 +23,6 @@ const Login = ({ onLogin }) => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
-
-    const BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
     
     // For admin, currently keep hardcoded as a fail-safe, but others go to DB
     if (selectedRole === 'admin' && username === 'admin' && password === 'admin123') {

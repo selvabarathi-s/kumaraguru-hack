@@ -9,6 +9,7 @@ module.exports = {
   },
   port: process.env.PORT || 5000,
   flaskUrl: process.env.FLASK_URL || 'http://localhost:5001',
+  cvUrl: process.env.CV_URL || 'http://localhost:5002',
   logLevel: process.env.LOG_LEVEL || 'info',
   nodeEnv: process.env.NODE_ENV || 'development',
   mlRequestTimeoutMs: parseInt(process.env.ML_REQUEST_TIMEOUT_MS || '60000', 10),
